@@ -1,0 +1,135 @@
+body {
+  background-color: grey;
+  display: flex;
+  height: 100vh;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 5rem;
+}
+
+#container {
+  height: 40rem;
+  width: 40rem;
+  background-color: black;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+}
+.tickable {
+  background-color: blanchedalmond;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-style: solid;
+  margin: 0;
+  border-color: red;
+  font-size: 12rem;
+  cursor: pointer;
+}
+p {
+  color: red;
+  user-select: none;
+}
+
+#reset {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 1s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background-color: rgb(143, 81, 201);
+  margin-top: 6rem;
+  height: 10rem;
+  width: 10rem;
+}
+#reset:hover {
+  rotate: 360deg;
+  cursor: pointer;
+  background-color: rgba(18, 245, 226, 0.623);
+  transition: rotate, background-color, 1s;
+}
+
+img {
+  height: 5rem;
+  width: 5rem;
+}
+#turn-indicator {
+  font-size: 4 rem;
+  color: red;
+}
+
+#cross0 {
+  display: inline-block;
+  position: absolute;
+  height: 1rem;
+  width: 40rem;
+  background-color: azure;
+  margin-top: 6.5rem;
+}
+
+#cross1 {
+  
+  position: absolute;
+  height: 1rem;
+  width: 40rem;
+  background-color: azure;
+  margin-top: 20.5rem;
+}
+#cross2 {
+  position: absolute;
+  display: inline-block;
+  height: 1rem;
+  width: 40rem;
+  background-color: azure;
+
+  margin-top: 34.5rem;
+}
+#cross3 {
+  position: absolute;
+  
+  height: 1rem;
+  width: 40rem;
+  background-color: azure;
+  rotate: 90deg;
+  left: 3.2rem;
+  float: left;
+}
+#cross4 {
+  height: 1rem;
+  width: 40rem;
+  background-color: azure;
+  position: absolute;
+  rotate: 90deg;
+  margin-top: 21rem;
+}
+#cross5 {
+  rotate: 90deg;
+  height: 1rem;
+  width: 40rem;
+  background-color: azure;
+  position: absolute;
+  
+  
+  margin: 21rem 0rem 0rem 21rem;
+}
+#cross6 {
+  height: 1rem;
+  width: 45rem;
+  background-color: azure;
+  position: absolute;
+  display: inline-block;
+  margin-top: 18rem;
+  rotate: -45deg;
+}
+#cross7 {
+  height: 1rem;
+  width: 45rem;
+  background-color: azure;
+  position: absolute;
+  display: inline-block;
+  margin-top: 18rem;
+  rotate: 45deg;
+}
