@@ -3,10 +3,15 @@
 
 <head>
   <title>Document</title>
-  <link rel="stylesheet" href="/public/css/style.css">
+  <link rel="stylesheet" href="./css/style.css">
 </head>
 
 <body>
+  <div id="score">
+    <p class="score-Number">P1:<p id="p1"></p></p>
+    <p class="score-Number">P2:<p id="p2"></p></p>
+    <p class="score-Number">Tie:<p id="tie"></p></p>
+  </div>
   <p id="turn-indicator">Player 1</p>
   <div id="container">
     <div id="cross0"></div>
@@ -17,19 +22,19 @@
     <div id="cross5"></div>
     <div id="cross6"></div>
     <div id="cross7"></div>
-    <div class="tickable" id="00"></div>
-    <div class="tickable" id="10"></div>
-    <div class="tickable" id="20"></div>
-    <div class="tickable" id="01"></div>
-    <div class="tickable" id="11"></div>
-    <div class="tickable" id="21"></div>
-    <div class="tickable" id="02"></div>
-    <div class="tickable" id="12"></div>
-    <div class="tickable" id="22"></div>
+    <div class="tickable" style="z-index: 99;" id="00"></div>
+    <div class="tickable" style="z-index: 99;" id="10"></div>
+    <div class="tickable" style="z-index: 99;" id="20"></div>
+    <div class="tickable" style="z-index: 99;" id="01"></div>
+    <div class="tickable" style="z-index: 99;" id="11"></div>
+    <div class="tickable" style="z-index: 99;" id="21"></div>
+    <div class="tickable" style="z-index: 99;" id="02"></div>
+    <div class="tickable" style="z-index: 99;" id="12"></div>
+    <div class="tickable" style="z-index: 99;" id="22"></div>
   </div>
-  <div id="reset" onclick=""><img src="/3594008.png" alt=""></div>
+  <div id="reset" onclick=""><img src="3594008.png" alt=""></div>
 
-  <script src="/main.js"></script>
+  <script src="./main.js"></script>
 </body>
 
 </html>

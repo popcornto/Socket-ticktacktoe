@@ -30,14 +30,20 @@ httpServer.listen(5000, ()=>{
 
 */
 
+import express from "express"
+import {dirname} from "path"
+import { fileURLToPath } from "url";
 
-const express = require('express');
-const path = require('path');
+
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const app = express();
 const PORT = 3000;
 
-app.set('view engine', 'html');
+app.use("/", express.static('public'))
+
 
 // OR use res.sendFile for a specific file
 
@@ -46,7 +52,7 @@ app.listen(PORT, () => {
 });
 
 app.get("/", function (req, res) {
-  res.render(__dirname + "/public/index.html");
+  res.sendFile(__dirname + "\\public\\index.html");
 });
 
 
