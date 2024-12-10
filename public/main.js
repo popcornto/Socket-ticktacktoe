@@ -1,7 +1,9 @@
+let ws = WebSocket;
 let maxTurns = 9;
 let playerTurn = true; // false for player 1 / true for player 2
 let matchPoint = false;
 let match = -1;
+ws = new WebSocket("ws://localhost:5000");
 
 const turnIndicator = document.getElementById("turn-indicator");
 const tickables = document.querySelectorAll(".tickable");
@@ -20,7 +22,11 @@ const box02 = document.getElementById("02");
 const box12 = document.getElementById("12");
 const box22 = document.getElementById("22");
 
-fetch("http://localhost:3000/score")
+ws.addEventListener("message", (data) => {
+  console.log(data + ":sent");
+});
+
+fetch("http://localhost:5000/score")
   .then((response) => {
     if (!response.ok) {
       throw new Error("Network response was not ok");
@@ -60,6 +66,8 @@ tickables.forEach(function (tickable) {
         playerTurn = false;
         checkWin();
         maxTurns--;
+        const map = mapPlayerMoves();
+        ws.send(JSON.stringify(map));
       } else {
         turnIndicator.textContent = "Player 1";
         tickable.style.backgroundColor = "blanchedalmond";
@@ -78,7 +86,7 @@ tickables.forEach(function (tickable) {
         tickable.style.pointerEvents = "none";
       });
       if (match === 1) {
-        fetch("http://localhost:3000/addp2")
+        fetch("http://localhost:5000/addp2")
           .then((response) => {
             if (!response.ok) {
               throw new Error("Network response was not ok");
@@ -94,7 +102,7 @@ tickables.forEach(function (tickable) {
           })
           .catch((error) => console.error("Fetch error:", error));
       } else if (match === 2) {
-        fetch("http://localhost:3000/addp1")
+        fetch("http://localhost:5000/addp1")
           .then((response) => {
             if (!response.ok) {
               throw new Error("Network response was not ok");
@@ -111,7 +119,7 @@ tickables.forEach(function (tickable) {
           .catch((error) => console.error("Fetch error:", error));
       }
     } else if (maxTurns === 0) {
-      fetch("http://localhost:3000/addtie")
+      fetch("http://localhost:5000/addtie")
         .then((response) => {
           if (!response.ok) {
             throw new Error("Network response was not ok");
@@ -130,6 +138,17 @@ tickables.forEach(function (tickable) {
   });
 });
 
+function mapPlayerMoves() {
+  const list = document.getElementsByClassName("tickable");
+  let gridMap = {};
+  let i = 0;
+  for (let i = 0; i < list.length; i++) {
+    const element = list[i];
+    gridMap[element.id] = element.innerText;
+  }
+  console.log(Object.values(gridMap));
+  return gridMap;
+}
 function checkWin() {
   if (checkBoxes(box00, box10, box20, "X")) {
     const cross = document.getElementById("cross0");
@@ -297,7 +316,7 @@ function checkWin() {
 /*
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:3000");
+const socket = io("http://localhost:5000");
 
 socket.on("hello", (arg) => {
   console.log(arg);

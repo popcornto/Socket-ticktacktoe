@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -8,6 +7,9 @@
 
 <body>
   <div id="score">
+    <p class="score-Number">Players:
+    <p id="players"></p>
+    </p>
     <p class="score-Number">P1:
     <p id="p1"></p>
     </p>
@@ -41,7 +43,9 @@
     <div class="tickable" style="z-index: 99;" id="22"></div>
   </div>
   <div id="reset" onclick=""><img src="3594008.png" alt=""></div>
-
+  <form action="reset" method="post" id="delete-form">
+    <button type="submit" id="delete-button">Delete Score</button>
+  </form>
   <script src="./main.js"></script>
 </body>
 

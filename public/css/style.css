@@ -1,30 +1,34 @@
 body {
   background-color: grey;
   height: 100vh;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   font-size: 5rem;
 }
 
 #score{
-  align-self: center;
   display: flex;
   flex-direction: row;
-  position: static;
   align-items: center;
   justify-content: center;
   height: 5rem;
-  width: 50rem;
+  width: 100%;
   background-color: rgba(94, 148, 7, 0.26);
   border-radius: 100px;
 }
 .score-Number{
   color: seagreen;
   background-color: aliceblue;
-  margin: 100px;
+  margin: 50px;
   border-radius: 20px;
   padding: 10px;
+}
+#delete-form{
+  justify-self: center;
+  align-self: center;
+}
+#delete-button{
+  background-color: darkgoldenrod;
+  width: 10rem;
+  height: 3rem;
 }
 
 #container {
@@ -51,7 +55,7 @@ body {
 }
 
 p {
-  color: red;
+  color: rgb(189, 30, 204);
   user-select: none;
   font-size: 3rem;
 }

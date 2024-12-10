@@ -30,41 +30,45 @@ httpServer.listen(5000, ()=>{
 
 */
 
-import express from "express";
+import express, { urlencoded } from "express";
 import { dirname } from "path";
+import { Socket } from "socket.io-client";
 import { fileURLToPath } from "url";
-import { Axios } from "axios";
+import { WebSocket, WebSocketServer } from "ws";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+let app = express();
 
-const app = express();
-const PORT = 3000;
+let __filename = fileURLToPath(import.meta.url);
+let __dirname = dirname(__filename);
 
+const PORT = 5000;
+let playerNumber = 0;
 let p1 = 0;
 let p2 = 0;
 let tie = 0;
 
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
+function onSocketPreError(e) {
+  console.log(e);
+}
+
+function onSocketPostError(e) {
+  console.log(e);
+}
+
+app.use(express.json());
+app.use(express.static("public"));
+app.get("/", function (req, res) {
+  res.sendFile(__dirname + "\\public\\index.html");
 });
-app.use("/", express.static("public"));
 
-// OR use res.sendFile for a specific file
+app.post("/reset", (req, res) => {
+  p1 = p2 = tie = 0;
+  res.redirect("/");
+});
 
-app.get("/reset", (req, res)=>{
-  p1 = p2 = tie = 0
+app.get("/score", (req, res) => {
   res.send({ p1: p1, p2: p2, tie: tie });
-})
-
-app.get("/score", (req,res)=>{
-  res.send({ p1: p1, p2: p2, tie: tie });
-})
+});
 app.get("/addp1", (req, res) => {
   p1++;
   res.send({ p1: p1, p2: p2, tie: tie });
@@ -77,25 +81,42 @@ app.get("/addtie", (req, res) => {
   tie++;
   res.send({ p1: p1, p2: p2, tie: tie });
 });
-app.get("/", function (req, res) {
-  res.sendFile(__dirname + "\\public\\index.html");
-});
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
 
-/*
+const wss = new WebSocketServer({ noServer: true });
 
-const { Server } = require("socket.io");
+server.on("upgrade", (req, socket, head) => {
+  socket.on("error", onSocketPreError);
+  //auth
 
-
-const io = new Server({});
-let count2 = 0
-io.on("connection", (socket) => {
-  socket.emit("hello", 1, "2", { 3: "4", 5: Buffer.from([6]) });
+  wss.handleUpgrade(req, socket, head, (ws) => {
+    socket.removeListener("error", onSocketPreError);
+    wss.emit("connection", ws, req);
+  });
 });
 
-io.listen(3000);
+wss.on("connection", (ws, req) => {
+  ws.on("error", onSocketPostError);
+  console.log("Client connected");
+  playerNumber++;
+  ws.on("message", (data) => {
+    try {
+      const message = JSON.parse(data);
+      console.log(message);
+    } catch (error) {
+      console.error("Invalid JSON:", error);
+    }
+  });
+  ws.on("close", () => {
+    console.log("Connection closed");
+    playerNumber--;
+    console.log(playerNumber);
+  });
+});
 
-*/
+wss.on("message", (ws, req) => {
+  ws.on("error", onSocketPostError);
+});
