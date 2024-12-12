@@ -46,6 +46,7 @@ let playerNumber = 0;
 let p1 = 0;
 let p2 = 0;
 let tie = 0;
+let playerTurn = true
 
 let gridObj = {
   10: "",
@@ -72,6 +73,15 @@ app.use(express.static("public"));
 app.get("/", function (req, res) {
   res.sendFile(__dirname + "\\public\\index.html");
 });
+
+app.get("/resetPlayerTurn", (res,req)=>{
+  playerTurn = true
+})
+
+app.get("/playerTurn", (req, res)=>{
+  res.send(playerTurn)
+  playerTurn = !playerTurn
+})
 
 app.post("/reset", (req, res) => {
   p1 = p2 = tie = 0;
@@ -118,15 +128,24 @@ wss.on("connection", (ws, req) => {
   ws.on("error", onSocketPostError);
   console.log("Client connected");
   playerNumber++;
+  ws.on("message", function message(data, isBinary) {
+    wss.clients.forEach(function each(client) {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(data, { binary: isBinary });
+      }
+    });
+  });
+  /*
   ws.on("message", (data) => {
     try {
       let message = JSON.parse(data);
       gridObj = message;
-      console.log(gridObj);
+      //console.log(gridObj);
+      ws.emit(data);
     } catch (error) {
       console.error("Invalid JSON:", error);
     }
-  });
+  });*/
   ws.on("close", () => {
     console.log("Connection closed");
     playerNumber--;

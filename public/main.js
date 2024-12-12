@@ -1,6 +1,6 @@
 let ws = WebSocket;
 let maxTurns = 9;
-let playerTurn = true; // false for player 1 / true for player 2
+let playerTurn; // false for player 1 / true for player 2
 let matchPoint = false;
 let match = -1;
 ws = new WebSocket("ws://localhost:5000");
@@ -34,8 +34,6 @@ let gridobj = {
   "02": "",
 };
 
-
-
 fetch("http://localhost:5000/grid")
   .then((response) => {
     if (!response.ok) {
@@ -45,12 +43,9 @@ fetch("http://localhost:5000/grid")
   })
   .then((data) => {
     gridobj = data;
-    console.log(JSON.stringify(data));
+    //console.log(JSON.stringify(data));
   });
-ws.addEventListener("message", (data) => {
-  console.log(data + ":sent");
-  ws.send(gridobj)
-});
+
 fetch("http://localhost:5000/score")
   .then((response) => {
     if (!response.ok) {
@@ -63,7 +58,29 @@ fetch("http://localhost:5000/score")
   })
   .catch((error) => console.error("Fetch error:", error));
 
+ws.addEventListener("message", (data) => {
+  console.log(data.data); //first data is a message event
+  let newGrid = data.data;
+  console.log(JSON.parse(newGrid)); //parsing a string to an obj
+  displayMap(JSON.parse(newGrid));
+  match = checkWin();
+  fetch("http://localhost:5000/score")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      updateScore(data.p1, data.p2, data.tie);
+    })
+    .catch((error) => console.error("Fetch error:", error));
+  displayReset();
+});
+
 function reloadPage() {
+  fetch("http://localhost:5000/resetPlayerTurn")
+        .catch((error) => console.error("Fetch error:", error));
   location.reload();
 }
 function checkWin() {
@@ -361,10 +378,22 @@ match = checkWin();
 displayReset();
 
 tickables.forEach(function (tickable) {
-  tickable.addEventListener("click", function handleClick() {
+  tickable.addEventListener("click", async function handleClick() {
     if (!tickable.classList.contains("clicked")) {
       //var audio = new Audio("shar.mp3");
       //audio.play();
+      await fetch("http://localhost:5000/playerTurn")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          console.log(data);
+          playerTurn = data;
+        })
+        .catch((error) => console.error("Fetch error:", error));
       if (playerTurn) {
         turnIndicator.textContent = "Player 2";
         tickable.innerText = "X";
@@ -395,6 +424,6 @@ tickables.forEach(function (tickable) {
       }
     }
     match = checkWin();
-    displayReset()
+    displayReset();
   });
 });
