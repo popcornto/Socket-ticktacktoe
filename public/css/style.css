@@ -53,7 +53,9 @@ body {
   font-size: 4rem;
   cursor: pointer;
 }
-
+.clicked{
+  cursor: default;
+}
 p {
   color: rgb(189, 30, 204);
   user-select: none;

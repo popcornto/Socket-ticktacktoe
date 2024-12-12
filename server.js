@@ -47,6 +47,18 @@ let p1 = 0;
 let p2 = 0;
 let tie = 0;
 
+let gridObj = {
+  10: "",
+  11: "",
+  12: "",
+  20: "",
+  21: "",
+  22: "",
+  "00": "",
+  "01": "",
+  "02": "",
+};
+
 function onSocketPreError(e) {
   console.log(e);
 }
@@ -65,7 +77,11 @@ app.post("/reset", (req, res) => {
   p1 = p2 = tie = 0;
   res.redirect("/");
 });
+app.get("/grid", (req, res) => {
+  let json = JSON.stringify(gridObj);
 
+  res.send(json);
+});
 app.get("/score", (req, res) => {
   res.send({ p1: p1, p2: p2, tie: tie });
 });
@@ -104,8 +120,9 @@ wss.on("connection", (ws, req) => {
   playerNumber++;
   ws.on("message", (data) => {
     try {
-      const message = JSON.parse(data);
-      console.log(message);
+      let message = JSON.parse(data);
+      gridObj = message;
+      console.log(gridObj);
     } catch (error) {
       console.error("Invalid JSON:", error);
     }
