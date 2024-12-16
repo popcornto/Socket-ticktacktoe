@@ -4,6 +4,19 @@ body {
   font-size: 5rem;
 }
 
+.wait-for-join{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: color-mix(in srgb-linear, red 50%, black 50%);
+  z-index: 100;
+}
+
 #score{
   display: flex;
   flex-direction: row;
@@ -57,7 +70,10 @@ body {
   cursor: default;
 }
 p {
-  color: rgb(189, 30, 204);
+  font-weight: 600;
+  font-style: italic;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  color: rgb(145, 186, 56);
   user-select: none;
   font-size: 3rem;
 }
