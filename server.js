@@ -1,38 +1,5 @@
-/*
-
-const express = require("express");
-const { createServer } = require("http");
-const { Server } = require("socket.io");
-
-const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer, { /* options */ /*});
-
-
-
-app.get("", function (req, res) {
-  res.sendFile(__dirname,"/", "mark.html");
-});
-
-
-
-
-io.on("hello", (socket) => {
-  socket.emit("BOIIIII!!!")
-  socket.on("howdy", (arg)=>{
-    console.log(arg);
-  })
-});
-
-httpServer.listen(5000, ()=>{
-  console.log("listning to Port: 5000");
-});
-
-*/
-
 import express, { urlencoded } from "express";
 import { dirname } from "path";
-import { Socket } from "socket.io-client";
 import { fileURLToPath } from "url";
 import { WebSocket, WebSocketServer } from "ws";
 
@@ -46,7 +13,8 @@ let playerNumber = 0;
 let p1 = 0;
 let p2 = 0;
 let tie = 0;
-let playerTurn = true
+let playerTurn = true;
+let players = [];
 
 let gridObj = {
   10: "",
@@ -74,14 +42,14 @@ app.get("/", function (req, res) {
   res.sendFile(__dirname + "\\public\\index.html");
 });
 
-app.get("/resetPlayerTurn", (res,req)=>{
-  playerTurn = true
-})
+app.get("/resetPlayerTurn", (res, req) => {
+  playerTurn = true;
+});
 
-app.get("/playerTurn", (req, res)=>{
-  res.send(playerTurn)
-  playerTurn = !playerTurn
-})
+app.get("/playerTurn", (req, res) => {
+  res.send(playerTurn);
+  playerTurn = !playerTurn;
+});
 
 app.post("/reset", (req, res) => {
   p1 = p2 = tie = 0;
@@ -127,6 +95,7 @@ server.on("upgrade", (req, socket, head) => {
 wss.on("connection", (ws, req) => {
   ws.on("error", onSocketPostError);
   console.log("Client connected");
+  console.log(wss.clients);
   playerNumber++;
   ws.on("message", function message(data, isBinary) {
     wss.clients.forEach(function each(client) {
@@ -156,3 +125,82 @@ wss.on("connection", (ws, req) => {
 wss.on("message", (ws, req) => {
   ws.on("error", onSocketPostError);
 });
+
+class Game {
+
+  playerIds = {
+    p1: "",
+    p2: "",
+  }
+
+  turn = true
+
+  score = {
+    p1: 0,
+    p2: 0,
+    tie: 0,
+  };
+
+  gameobj
+
+  constructor(p1Id, p2Id) {
+    this.playerIds.p1 = p1Id
+    this.playerIds.p2 = p2Id
+  }
+
+  getP1Id(){
+    return this.playerIds.p1
+  }
+
+  getP2Id(){
+    return this.playerIds.p2
+  }
+
+  resetScore() {
+    this.score = {
+      p1: 0,
+      p2: 0,
+      tie: 0,
+    };
+  }
+
+  addP1() {
+    this.score.p1++
+  }
+  addP2(){
+    this.score.p2++
+  }
+  addTie(){
+    this.score.tie++
+  }
+
+  setGameState(newgameobj){
+    this.gameobj = newgameobj
+  }
+
+  getGameState(){
+    return this.gameobj
+  }
+
+  resetGameState(){
+    this.gameobj = {
+      10: "",
+      11: "",
+      12: "",
+      20: "",
+      21: "",
+      22: "",
+      "00": "",
+      "01": "",
+      "02": "",
+    };
+  }
+
+  changeTurn(){
+    this.turn = !this.turn
+  }
+
+  getTurn(){
+    return this.turn
+  }
+}

@@ -58,7 +58,8 @@ fetch("http://localhost:5000/score")
   })
   .catch((error) => console.error("Fetch error:", error));
 
-ws.addEventListener("message", (data) => {
+
+  ws.addEventListener("message", (data) => {
   console.log(data.data); //first data is a message event
   let newGrid = data.data;
   console.log(JSON.parse(newGrid)); //parsing a string to an obj
@@ -372,6 +373,8 @@ function disableAllButtons() {
     tickable.style.pointerEvents = "none";
   });
 }
+
+
 
 displayMap(gridobj);
 match = checkWin();
