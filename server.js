@@ -40,6 +40,18 @@ function onSocketPostError(e) {
   console.log(e);
 }
 
+function search(id) {
+  for (let i = 0; i < lobby.length; i++) {
+    const element = lobby[i];
+    const p1 = element.getP1Id();
+    const p2 = element.getP2Id();
+    if (id === p1 || id === p2) {
+      return element.getOppositeId(id);
+    }
+  }
+  return "";
+}
+
 function matchMaker(player) {
   if (queue.length === 0) {
     //if there are no players waiting
@@ -132,17 +144,15 @@ wss.on("connection", (ws, req) => {
   matchMaker(ws.id);
   console.log(lobby);
   ws.on("message", function message(data, isBinary) {
-    wss.clients.forEach(function each(client) {
-      /*
-      if (client.readyState === WebSocket.OPEN) {
-        if (players.includes(ws.id)) {
-          client.send(data, { binary: isBinary });
-        }
+    const opposite = search(ws.id);
+    wss.clients.forEach((client) => {
+      if (client.id === opposite) {
+        client.send(data, { binary: isBinary });
+        
       }
-      */
     });
   });
-
+/*
   ws.on("message", (data) => {
     try {
       let message = JSON.parse(data);
@@ -152,11 +162,11 @@ wss.on("connection", (ws, req) => {
     } catch (error) {
       console.error("Invalid JSON:", error);
     }
-  });
+  });*/
 
   ws.on("close", () => {
     let opposite;
-    
+
     for (let i = 0; i < lobby.length; i++) {
       const element = lobby[i];
       opposite = element.getOppositeId(ws.id);
@@ -171,13 +181,16 @@ wss.on("connection", (ws, req) => {
       }
     });
     players = players.filter((element) => {
-      return element != opposite
+      return element != opposite;
     });
-    players = players.filter((elm)=>{
-      return elm != ws.id
-    })
+    players = players.filter((elm) => {
+      return elm != ws.id;
+    });
     lobby = lobby.filter((element) => {
       return element.getOppositeId() === opposite;
+    });
+    queue = queue.filter((elm) => {
+      return elm != ws.id;
     });
     console.log(players);
     console.log("Connection closed");
