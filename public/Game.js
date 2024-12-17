@@ -29,6 +29,15 @@ export default class Game {
       this.playerIds.p1 = p1Id;
     }
   
+    toJson(){
+        return {
+            gameobj: this.gameobj,
+            score: this.score,
+            turn: this.turn,
+            playerIds: this.playerIds,
+        }
+    }
+
     getLobbySize() {
       return Object.keys(this.playerIds).length;
     }
