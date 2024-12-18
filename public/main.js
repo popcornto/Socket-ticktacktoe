@@ -3,7 +3,21 @@ let maxTurns = 9;
 let playerTurn; // false for player 1 / true for player 2
 let matchPoint = false;
 let match = -1;
+let isWaiting = true;
+let game;
+let score;
 ws = new WebSocket("ws://localhost:5000");
+const newgrid = {
+  10: "",
+  11: "",
+  12: "",
+  20: "",
+  21: "",
+  22: "",
+  "00": "",
+  "01": "",
+  "02": "",
+};
 
 const turnIndicator = document.getElementById("turn-indicator");
 const tickables = document.querySelectorAll(".tickable");
@@ -22,18 +36,7 @@ const box02 = document.getElementById("02");
 const box12 = document.getElementById("12");
 const box22 = document.getElementById("22");
 
-let gridobj = {
-  10: "",
-  11: "",
-  12: "",
-  20: "",
-  21: "",
-  22: "",
-  "00": "",
-  "01": "",
-  "02": "",
-};
-
+/*
 fetch("http://localhost:5000/grid")
   .then((response) => {
     if (!response.ok) {
@@ -44,8 +47,8 @@ fetch("http://localhost:5000/grid")
   .then((data) => {
     gridobj = data;
     //console.log(JSON.stringify(data));
-  });
-
+  });*/
+/*
 fetch("http://localhost:5000/score")
   .then((response) => {
     if (!response.ok) {
@@ -57,13 +60,103 @@ fetch("http://localhost:5000/score")
     updateScore(data.p1, data.p2, data.tie);
   })
   .catch((error) => console.error("Fetch error:", error));
+*/
+document.getElementById("wait").classList.add("wait-for-join");
+function ToggleWaitingScreen() {
+  const wait = document.getElementById("wait");
 
+  wait.classList.remove("wait-for-join");
+  while (wait.firstChild) {
+    wait.removeChild(wait.firstChild);
+  }
+}
 
-  ws.addEventListener("message", (data) => {
-  console.log(data.data); //first data is a message event
+ws.addEventListener("message", (data) => {
+  isWaiting = false;
+  let fetchedGame = JSON.parse(data.data);
+  game = fetchedGame;
+  console.log(game);
+  // console.log(game);
+  // console.log(game.gameobj);
+  let grid = game.gameobj;
+  playerTurn = game.turn;
+  score = game.score;
+  // console.log("gameobj: " + grid);
+  // console.log("playerTurn: " + game.turn);
+  // console.log("score: " + score);
+  updateScoreV2(score);
+  displayMap(grid);
+  match = checkWin();
+  if (match > -1) {
+    displayReset(score);
+    console.log(game);
+  } else {
+    if (isWaiting === false) {
+      ToggleWaitingScreen();
+      tickables.forEach(function (tickable) {
+        tickable.addEventListener("click", async function handleClick() {
+          if (!tickable.classList.contains("clicked")) {
+            // var audio = new Audio("shar.mp3");
+            // audio.play();
+            /*
+            await fetch("http://localhost:5000/playerTurn")
+              .then((response) => {
+                if (!response.ok) {
+                  throw new Error("Network response was not ok");
+                }
+                return response.json();
+              })
+              .then((data) => {
+                console.log(data);
+                playerTurn = data;
+              })
+              .catch((error) => console.error("Fetch error:", error));
+              */
+            if (playerTurn) {
+              playerTurn = false;
+              updateGameTurn(playerTurn);
+              turnIndicator.textContent = "Player 2";
+              tickable.innerText = "X";
+              tickable.classList.add("clicked");
+
+              match = checkWin();
+              if (match != -1) {
+                disableAllButtons();
+              }
+
+              let map = mapPlayerMoves();
+              game.gameobj = map;
+              ws.send(JSON.stringify(game));
+            } else {
+              playerTurn = true;
+              updateGameTurn(playerTurn);
+              turnIndicator.textContent = "Player 1";
+              tickable.innerText = "O";
+              tickable.classList.add("clicked");
+
+              checkWin();
+              if (match != -1) {
+                disableAllButtons();
+              }
+
+              let map = mapPlayerMoves();
+              game.gameobj = map;
+              //console.log(game);
+              ws.send(JSON.stringify(game));
+            }
+          }
+          match = checkWin();
+          displayReset(score);
+          console.log(game);
+        });
+      });
+    }
+  }
+
+  /*
   let newGrid = data.data;
-  console.log(JSON.parse(newGrid)); //parsing a string to an obj
-  displayMap(JSON.parse(newGrid));
+  console.log(JSON.parse(newGrid.gameobj)); //parsing a string to an obj
+  
   match = checkWin();
   fetch("http://localhost:5000/score")
     .then((response) => {
@@ -77,12 +170,29 @@ fetch("http://localhost:5000/score")
     })
     .catch((error) => console.error("Fetch error:", error));
   displayReset();
+  */
 });
+function updateGameScore(score) {
+  game.score = score;
+}
+function updateGameTurn(turn) {
+  game.turn = turn;
+}
+function updateGameGrid(grid) {
+  game.gameobj = grid;
+}
+function updateGameState(turn, grid, score) {
+  game.turn = turn;
+  game.gameobj = grid;
+  game.score = score;
+}
 
 function reloadPage() {
-  fetch("http://localhost:5000/resetPlayerTurn")
-        .catch((error) => console.error("Fetch error:", error));
-  location.reload();
+  updateGameGrid(newgrid);
+  clearGrid()
+  console.log(game);
+  EnablePlayerMoves();
+  match = checkWin()
 }
 function checkWin() {
   if (checkBoxes(box00, box10, box20, "X")) {
@@ -274,61 +384,83 @@ function checkIfTie() {
   tickables.forEach((tickable) => {
     if (tickable.classList.contains("clicked")) {
       count++;
-      console.log(count);
+      //console.log(count);
     }
   });
   return count;
 }
 
-function displayReset() {
+function displayReset(score) {
   if (match === 1) {
-    fetch("http://localhost:5000/addp2")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        updateScore(data.p1, data.p2, data.tie);
-        turnIndicator.innerText = "Player 2 Won!";
-        reset.style.visibility = "visible";
-        reset.style.opacity = 1;
-        reset.onclick = reloadPage;
-      })
-      .catch((error) => console.error("Fetch error:", error));
+    score.p2++;
+    updateGameScore(score);
+    updateScoreV2(score);
+    turnIndicator.innerText = "Player 2 Won!";
+    reset.style.visibility = "visible";
+    reset.style.opacity = 1;
+    reset.onclick = reloadPage;
+    // fetch("http://localhost:5000/addp2")
+    //   .then((response) => {
+    //     if (!response.ok) {
+    //       throw new Error("Network response was not ok");
+    //     }
+    //     return response.json();
+    //   })
+    //   .then((data) => {
+    //     updateScore(data.p1, data.p2, data.tie);
+    //     turnIndicator.innerText = "Player 2 Won!";
+    //     reset.style.visibility = "visible";
+    //     reset.style.opacity = 1;
+    //     reset.onclick = reloadPage;
+    //   })
+    //   .catch((error) => console.error("Fetch error:", error));
   } else if (match === 2) {
-    fetch("http://localhost:5000/addp1")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        updateScore(data.p1, data.p2, data.tie);
-        turnIndicator.textContent = "Player 1 Won!";
-        reset.style.visibility = "visible";
-        reset.style.opacity = 1;
-        reset.onclick = reloadPage;
-      })
-      .catch((error) => console.error("Fetch error:", error));
+    score.p1++;
+    updateGameScore(score);
+    updateScoreV2(score);
+
+    turnIndicator.innerText = "Player 1 Won!";
+    reset.style.visibility = "visible";
+    reset.style.opacity = 1;
+    reset.onclick = reloadPage;
+    // fetch("http://localhost:5000/addp1")
+    //   .then((response) => {
+    //     if (!response.ok) {
+    //       throw new Error("Network response was not ok");
+    //     }
+    //     return response.json();
+    //   })
+    //   .then((data) => {
+    //     updateScore(data.p1, data.p2, data.tie);
+    //     turnIndicator.textContent = "Player 1 Won!";
+    //     reset.style.visibility = "visible";
+    //     reset.style.opacity = 1;
+    //     reset.onclick = reloadPage;
+    //   })
+    //   .catch((error) => console.error("Fetch error:", error));
   } else if (match === 0) {
-    fetch("http://localhost:5000/addtie")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        updateScore(data.p1, data.p2, data.tie);
-        turnIndicator.textContent = "Its a Tie!";
-        reset.style.visibility = "visible";
-        reset.style.opacity = 1;
-        reset.onclick = reloadPage;
-      })
-      .catch((error) => console.error("Fetch error:", error));
+    score.tie++;
+    updateGameScore(score);
+    updateScoreV2(score);
+    turnIndicator.innerText = "It's a Tie!";
+    reset.style.visibility = "visible";
+    reset.style.opacity = 1;
+    reset.onclick = reloadPage;
+    // fetch("http://localhost:5000/addtie")
+    //   .then((response) => {
+    //     if (!response.ok) {
+    //       throw new Error("Network response was not ok");
+    //     }
+    //     return response.json();
+    //   })
+    //   .then((data) => {
+    //     updateScore(data.p1, data.p2, data.tie);
+    //     turnIndicator.textContent = "Its a Tie!";
+    //     reset.style.visibility = "visible";
+    //     reset.style.opacity = 1;
+    //     reset.onclick = reloadPage;
+    //   })
+    //   .catch((error) => console.error("Fetch error:", error));
   }
 }
 
@@ -338,6 +470,12 @@ function checkBoxes(box1, box2, box3, value) {
     box2.innerText === value &&
     box3.innerText === value
   );
+}
+function updateScoreV2(scoreobj) {
+  const { p1, p2, tie } = scoreobj;
+  p1Score.innerHTML = p1;
+  p2Score.innerHTML = p2;
+  tieScore.innerHTML = tie;
 }
 function updateScore(p1, p2, tie) {
   p1Score.innerHTML = p1;
@@ -373,60 +511,20 @@ function disableAllButtons() {
     tickable.style.pointerEvents = "none";
   });
 }
+function EnablePlayerMoves() {
+  tickables.forEach((tickable) => {
+    tickable.classList.remove("clicked");
+    tickable.style.pointerEvents = "default";
+  });
+}
+function clearGrid() {
+  tickables.forEach((tickable) => {
+    tickable.innerText = "";
+    tickable.classList.remove("clicked");
+  });
+}
 
-
-
-displayMap(gridobj);
+/*displayMap(game);
 match = checkWin();
 displayReset();
-
-tickables.forEach(function (tickable) {
-  tickable.addEventListener("click", async function handleClick() {
-    if (!tickable.classList.contains("clicked")) {
-      //var audio = new Audio("shar.mp3");
-      //audio.play();
-      await fetch("http://localhost:5000/playerTurn")
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          console.log(data);
-          playerTurn = data;
-        })
-        .catch((error) => console.error("Fetch error:", error));
-      if (playerTurn) {
-        turnIndicator.textContent = "Player 2";
-        tickable.innerText = "X";
-        tickable.classList.add("clicked");
-        playerTurn = false;
-
-        match = checkWin();
-        if (match != -1) {
-          disableAllButtons();
-        }
-
-        let map = mapPlayerMoves();
-        ws.send(JSON.stringify(map));
-      } else {
-        turnIndicator.textContent = "Player 1";
-        tickable.style.backgroundColor = "blanchedalmond";
-        tickable.innerText = "O";
-        playerTurn = true;
-        tickable.classList.add("clicked");
-        maxTurns--;
-
-        checkWin();
-        if (match != -1) {
-          disableAllButtons();
-        }
-        let map = mapPlayerMoves();
-        ws.send(JSON.stringify(map));
-      }
-    }
-    match = checkWin();
-    displayReset();
-  });
-});
+*/

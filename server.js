@@ -39,8 +39,17 @@ function onSocketPreError(e) {
 function onSocketPostError(e) {
   console.log(e);
 }
-
-function search(id) {
+function findGame(id) {
+  for (let i = 0; i < lobby.length; i++) {
+    const element = lobby[i];
+    const p1 = element.getP1Id();
+    const p2 = element.getP2Id();
+    if (id === p1 || id === p2) {
+      return i;
+    }
+  }
+}
+function getOppositeId(id) {
   for (let i = 0; i < lobby.length; i++) {
     const element = lobby[i];
     const p1 = element.getP1Id();
@@ -67,8 +76,10 @@ function matchMaker(player) {
       }*/
 
     //if there are no games in the lobby create a new one and make the player join it
+    players.push(player);
     queue.push(player);
   } else {
+    players.push(player);
     const game = new Game(player); //if the queue isnt empty make a new game with the joining player and let the player waiting in queue join the game
     game.joinMatch(queue[0]);
     lobby.push(game);
@@ -97,7 +108,6 @@ app.post("/reset", (req, res) => {
 });
 app.get("/grid", (req, res) => {
   let json = JSON.stringify(gridObj);
-
   res.send(json);
 });
 app.get("/score", (req, res) => {
@@ -132,27 +142,44 @@ server.on("upgrade", (req, socket, head) => {
   });
 });
 
-wss.on("connection", (ws, req) => {
+wss.on("connection", (ws, req, isBinary) => {
   ws.id = uuidv4();
   ws.on("error", onSocketPostError);
   console.log("Client connected");
   playerNumber = wss.clients.size;
-  players.push(ws.id);
-  console.log("players: " + players);
+
   //console.log(ws);
   //console.log(wss.clients);
   matchMaker(ws.id);
-  console.log(lobby);
+  let index = -1;
+  wss.clients.forEach((client) => {
+    const opposite = getOppositeId(ws.id);
+    index = findGame(ws.id);
+    if (client.id === ws.id || client.id === opposite) {
+      if (index > -1) {
+        client.send(lobby[index].toJson(), { binary: isBinary });
+      }
+      //client.send(data, { binary: isBinary });
+    }
+  });
   ws.on("message", function message(data, isBinary) {
-    const opposite = search(ws.id);
+    const parsedData = JSON.parse(data)
+    const opposite = getOppositeId(ws.id);
     wss.clients.forEach((client) => {
+      index = findGame(ws.id);
       if (client.id === opposite) {
+        console.log(lobby);
+        lobby[index].setGameState(parsedData.gameobj)
+        lobby[index].setTurn(parsedData.turn)
+        lobby[index].setScore(parsedData.score)
+        console.log(lobby);
         client.send(data, { binary: isBinary });
-        
+
+        //client.send(data, { binary: isBinary });
       }
     });
   });
-/*
+  /*
   ws.on("message", (data) => {
     try {
       let message = JSON.parse(data);
@@ -166,15 +193,10 @@ wss.on("connection", (ws, req) => {
 
   ws.on("close", () => {
     let opposite;
-
     for (let i = 0; i < lobby.length; i++) {
       const element = lobby[i];
       opposite = element.getOppositeId(ws.id);
     }
-
-    console.log(ws.id);
-    console.log(opposite);
-    console.log(players);
     wss.clients.forEach((client) => {
       if (client.id == opposite) {
         client.close();
@@ -192,7 +214,6 @@ wss.on("connection", (ws, req) => {
     queue = queue.filter((elm) => {
       return elm != ws.id;
     });
-    console.log(players);
     console.log("Connection closed");
   });
 });
