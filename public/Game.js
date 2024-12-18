@@ -25,6 +25,8 @@ export default class Game {
   };
   // p = "";
 
+
+
   // getPlayer(id) {
   //   if (id === this.playerIds.p1) {
   //     p = "p1";
@@ -32,6 +34,21 @@ export default class Game {
   //     p = "p2";
   //   }
   // }
+
+  playersStates = {
+    p1: "start",
+    p2: "stop"
+  }
+
+  switchStates(){
+    if(this.playersStates.p1 === "start"){
+      this.playersStates.p1 = "stop"
+      this.playersStates.p2 = "start"
+    }else {
+      this.playersStates.p1 = "start"
+      this.playersStates.p2 = "stop"
+    }
+  }
 
   constructor(p1Id) {
     this.playerIds.p1 = p1Id;
@@ -42,6 +59,7 @@ export default class Game {
       gameobj: this.gameobj,
       score: this.score,
       playerIds: this.playerIds,
+      playersStates: this.playersStates,
       turn: this.turn,
     });
   }

@@ -70,14 +70,14 @@ function ToggleWaitingScreen() {
     wait.removeChild(wait.firstChild);
   }
 }
-
 ws.addEventListener("message", (data) => {
   isWaiting = false;
   let fetchedGame = JSON.parse(data.data);
   game = fetchedGame;
-  console.log(game);
+  //console.log(game);
   // console.log(game);
   // console.log(game.gameobj);
+  hasReset();
   let grid = game.gameobj;
   playerTurn = game.turn;
   score = game.score;
@@ -89,10 +89,11 @@ ws.addEventListener("message", (data) => {
   match = checkWin();
   if (match > -1) {
     displayReset(score);
-    console.log(game);
+    //console.log(game);
   } else {
     if (isWaiting === false) {
       ToggleWaitingScreen();
+
       tickables.forEach(function (tickable) {
         tickable.addEventListener("click", async function handleClick() {
           if (!tickable.classList.contains("clicked")) {
@@ -114,7 +115,6 @@ ws.addEventListener("message", (data) => {
               */
             if (playerTurn) {
               playerTurn = false;
-              updateGameTurn(playerTurn);
               turnIndicator.textContent = "Player 2";
               tickable.innerText = "X";
               tickable.classList.add("clicked");
@@ -126,7 +126,9 @@ ws.addEventListener("message", (data) => {
 
               let map = mapPlayerMoves();
               game.gameobj = map;
+              updateGameTurn(playerTurn);
               ws.send(JSON.stringify(game));
+              
             } else {
               playerTurn = true;
               updateGameTurn(playerTurn);
@@ -147,7 +149,7 @@ ws.addEventListener("message", (data) => {
           }
           match = checkWin();
           displayReset(score);
-          console.log(game);
+          //console.log(game);
         });
       });
     }
@@ -172,6 +174,39 @@ ws.addEventListener("message", (data) => {
   displayReset();
   */
 });
+function WaitTurn(){
+  disableAllButtons()
+}
+
+function hasReset() {
+  if (game.reset) {
+    reload();
+  }
+}
+function reload() {
+  updateGameGrid(newgrid);
+  clearGrid();
+  EnablePlayerMoves();
+  reverseCheckWin();
+  removeReset();
+  match = checkWin();
+}
+function removeReset() {
+  delete game.reset;
+}
+function addreset() {
+  game = { ...game, reset: true };
+}
+function reloadPage() {
+  updateGameGrid(newgrid);
+  clearGrid();
+  EnablePlayerMoves();
+  addreset(game);
+  reverseCheckWin();
+  match = checkWin();
+  ws.send(JSON.stringify(game));
+  removeReset();
+}
 function updateGameScore(score) {
   game.score = score;
 }
@@ -186,13 +221,16 @@ function updateGameState(turn, grid, score) {
   game.gameobj = grid;
   game.score = score;
 }
-
-function reloadPage() {
-  updateGameGrid(newgrid);
-  clearGrid()
-  console.log(game);
-  EnablePlayerMoves();
-  match = checkWin()
+function reverseCheckWin() {
+  const crosses = document.querySelectorAll("[id^='cross']");
+  crosses.forEach((cross) => {
+    cross.style.visibility = "hidden";
+    cross.classList.remove("anime1", "anime2");
+  });
+  const arr = document.getElementsByClassName("tickable");
+  for (let i = 0; i < 9; i++) {
+    arr[i].style.cssText = "pointer-events: auto;"; // Enable all buttons
+  }
 }
 function checkWin() {
   if (checkBoxes(box00, box10, box20, "X")) {
