@@ -93,13 +93,14 @@ ws.addEventListener("message", (data) => {
   } else {
     if (isWaiting === false) {
       ToggleWaitingScreen();
-
-      tickables.forEach(function (tickable) {
-        tickable.addEventListener("click", async function handleClick() {
-          if (!tickable.classList.contains("clicked")) {
-            // var audio = new Audio("shar.mp3");
-            // audio.play();
-            /*
+      if (playerTurn) {
+        
+        tickables.forEach(function (tickable) {
+          tickable.addEventListener("click", async function handleClick() {
+            if (!tickable.classList.contains("clicked")) {
+              // var audio = new Audio("shar.mp3");
+              // audio.play();
+              /*
             await fetch("http://localhost:5000/playerTurn")
               .then((response) => {
                 if (!response.ok) {
@@ -113,45 +114,48 @@ ws.addEventListener("message", (data) => {
               })
               .catch((error) => console.error("Fetch error:", error));
               */
-            if (playerTurn) {
-              playerTurn = false;
-              turnIndicator.textContent = "Player 2";
-              tickable.innerText = "X";
-              tickable.classList.add("clicked");
+              if (playerTurn) {
+                playerTurn = false;
+                turnIndicator.textContent = "Player 2";
+                tickable.innerText = "X";
+                tickable.classList.add("clicked");
 
-              match = checkWin();
-              if (match != -1) {
-                disableAllButtons();
+                match = checkWin();
+                if (match != -1) {
+                  disableAllButtons();
+                }
+
+                let map = mapPlayerMoves();
+                game.gameobj = map;
+                updateGameTurn(playerTurn);
+                ws.send(JSON.stringify(game));
+
+              } else {
+                playerTurn = true;
+                updateGameTurn(playerTurn);
+                turnIndicator.textContent = "Player 1";
+                tickable.innerText = "O";
+                tickable.classList.add("clicked");
+
+                checkWin();
+                if (match != -1) {
+                  disableAllButtons();
+                }
+
+                let map = mapPlayerMoves();
+                game.gameobj = map;
+                //console.log(game);
+                ws.send(JSON.stringify(game));
               }
-
-              let map = mapPlayerMoves();
-              game.gameobj = map;
-              updateGameTurn(playerTurn);
-              ws.send(JSON.stringify(game));
-              
-            } else {
-              playerTurn = true;
-              updateGameTurn(playerTurn);
-              turnIndicator.textContent = "Player 1";
-              tickable.innerText = "O";
-              tickable.classList.add("clicked");
-
-              checkWin();
-              if (match != -1) {
-                disableAllButtons();
-              }
-
-              let map = mapPlayerMoves();
-              game.gameobj = map;
-              //console.log(game);
-              ws.send(JSON.stringify(game));
             }
-          }
-          match = checkWin();
-          displayReset(score);
-          //console.log(game);
+            match = checkWin();
+            displayReset(score);
+            //console.log(game);
+          });
         });
-      });
+      }
+    }else{
+      disableAllButtons()
     }
   }
 
@@ -174,8 +178,8 @@ ws.addEventListener("message", (data) => {
   displayReset();
   */
 });
-function WaitTurn(){
-  disableAllButtons()
+function WaitTurn() {
+  disableAllButtons();
 }
 
 function hasReset() {
@@ -190,8 +194,16 @@ function reload() {
   reverseCheckWin();
   removeReset();
   match = checkWin();
+  reset.style.visibility = "invisible";
+  reset.style.opacity = 0;
+  reset.style.cursor = "default";
+  reset.onclick = "";
 }
 function removeReset() {
+  reset.style.visibility = "invisible";
+  reset.style.opacity = 0;
+  reset.onclick = "";
+  reset.style.cursor = "default";
   delete game.reset;
 }
 function addreset() {
@@ -204,6 +216,10 @@ function reloadPage() {
   addreset(game);
   reverseCheckWin();
   match = checkWin();
+  reset.style.visibility = "invisible";
+  reset.style.opacity = 0;
+  reset.onclick = "";
+  reset.style.cursor = "default";
   ws.send(JSON.stringify(game));
   removeReset();
 }
@@ -436,6 +452,7 @@ function displayReset(score) {
     turnIndicator.innerText = "Player 2 Won!";
     reset.style.visibility = "visible";
     reset.style.opacity = 1;
+    reset.style.cursor = "pointer";
     reset.onclick = reloadPage;
     // fetch("http://localhost:5000/addp2")
     //   .then((response) => {
