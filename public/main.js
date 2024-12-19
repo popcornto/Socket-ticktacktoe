@@ -6,6 +6,7 @@ let match = -1;
 let isWaiting = true;
 let game;
 let score;
+let Status;
 ws = new WebSocket("ws://localhost:5000");
 const newgrid = {
   10: "",
@@ -61,6 +62,7 @@ fetch("http://localhost:5000/score")
   })
   .catch((error) => console.error("Fetch error:", error));
 */
+
 document.getElementById("wait").classList.add("wait-for-join");
 function ToggleWaitingScreen() {
   const wait = document.getElementById("wait");
@@ -74,6 +76,7 @@ ws.addEventListener("message", (data) => {
   isWaiting = false;
   let fetchedGame = JSON.parse(data.data);
   game = fetchedGame;
+  console.log(fetchedGame);
   //console.log(game);
   // console.log(game);
   // console.log(game.gameobj);
@@ -89,12 +92,10 @@ ws.addEventListener("message", (data) => {
   match = checkWin();
   if (match > -1) {
     displayReset(score);
-    //console.log(game);
   } else {
     if (isWaiting === false) {
       ToggleWaitingScreen();
       if (playerTurn) {
-        
         tickables.forEach(function (tickable) {
           tickable.addEventListener("click", async function handleClick() {
             if (!tickable.classList.contains("clicked")) {
@@ -129,7 +130,7 @@ ws.addEventListener("message", (data) => {
                 game.gameobj = map;
                 updateGameTurn(playerTurn);
                 ws.send(JSON.stringify(game));
-
+                
               } else {
                 playerTurn = true;
                 updateGameTurn(playerTurn);
@@ -137,7 +138,7 @@ ws.addEventListener("message", (data) => {
                 tickable.innerText = "O";
                 tickable.classList.add("clicked");
 
-                checkWin();
+                match = checkWin();
                 if (match != -1) {
                   disableAllButtons();
                 }
@@ -146,16 +147,25 @@ ws.addEventListener("message", (data) => {
                 game.gameobj = map;
                 //console.log(game);
                 ws.send(JSON.stringify(game));
+                
               }
+              
             }
-            match = checkWin();
-            displayReset(score);
-            //console.log(game);
+            disableAllButtons()
           });
+          
         });
+        //console.log(game);
+        EnablePlayerMoves()
       }
-    }else{
-      disableAllButtons()
+    } else {
+      console.log(match);
+      if (match === -1) {
+        EnablePlayerMoves();
+      } else {
+        disableAllButtons();
+        displayReset(score);
+      }
     }
   }
 
@@ -178,7 +188,21 @@ ws.addEventListener("message", (data) => {
   displayReset();
   */
 });
+
+function resetScore() {
+  const newScore = {
+    p1: 0,
+    p2: 0,
+    tie: 0,
+  };
+  updateGameScore(newScore);
+  updateScoreV2(newScore);
+  console.log(game.score);
+  ws.send(JSON.stringify(game));
+}
+
 function WaitTurn() {
+  Status = "Enable";
   disableAllButtons();
 }
 
@@ -204,6 +228,7 @@ function removeReset() {
   reset.style.opacity = 0;
   reset.onclick = "";
   reset.style.cursor = "default";
+  game.isPlayer1 = true;
   delete game.reset;
 }
 function addreset() {
@@ -454,6 +479,7 @@ function displayReset(score) {
     reset.style.opacity = 1;
     reset.style.cursor = "pointer";
     reset.onclick = reloadPage;
+    match = -1;
     // fetch("http://localhost:5000/addp2")
     //   .then((response) => {
     //     if (!response.ok) {
@@ -478,6 +504,7 @@ function displayReset(score) {
     reset.style.visibility = "visible";
     reset.style.opacity = 1;
     reset.onclick = reloadPage;
+    match = -1;
     // fetch("http://localhost:5000/addp1")
     //   .then((response) => {
     //     if (!response.ok) {
@@ -501,6 +528,7 @@ function displayReset(score) {
     reset.style.visibility = "visible";
     reset.style.opacity = 1;
     reset.onclick = reloadPage;
+    match = -1;
     // fetch("http://localhost:5000/addtie")
     //   .then((response) => {
     //     if (!response.ok) {
@@ -516,6 +544,9 @@ function displayReset(score) {
     //     reset.onclick = reloadPage;
     //   })
     //   .catch((error) => console.error("Fetch error:", error));
+  }else{
+    EnablePlayerMoves()
+    ws.send(JSON.stringify(game))
   }
 }
 
@@ -569,7 +600,7 @@ function disableAllButtons() {
 function EnablePlayerMoves() {
   tickables.forEach((tickable) => {
     tickable.classList.remove("clicked");
-    tickable.style.pointerEvents = "default";
+    tickable.style.pointerEvents = "auto";
   });
 }
 function clearGrid() {

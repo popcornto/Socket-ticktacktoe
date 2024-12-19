@@ -163,16 +163,16 @@ wss.on("connection", (ws, req, isBinary) => {
     }
   });
   ws.on("message", function message(data, isBinary) {
-    const parsedData = JSON.parse(data)
+    const parsedData = JSON.parse(data);
     const opposite = getOppositeId(ws.id);
     wss.clients.forEach((client) => {
       index = findGame(ws.id);
       if (client.id === opposite) {
-        console.log(lobby);
-        lobby[index].setGameState(parsedData.gameobj)
-        lobby[index].setTurn(parsedData.turn)
-        lobby[index].setScore(parsedData.score)
-        console.log(lobby);
+        lobby[index].setGameState(parsedData.gameobj);
+        lobby[index].setTurn(parsedData.turn);
+        lobby[index].setScore(parsedData.score);
+        console.log(lobby[index]);
+
         client.send(data, { binary: isBinary });
 
         //client.send(data, { binary: isBinary });

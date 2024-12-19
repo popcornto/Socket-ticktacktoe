@@ -6,7 +6,10 @@
 </head>
 
 <body>
-  <div id="wait" ><p>wait for a player to join</p></div>
+
+  <div id="wait">
+    <p>wait for a player to join</p>
+  </div>
   <div id="score">
     <p class="score-Number">Players:
     <p id="players"></p>
@@ -44,9 +47,9 @@
     <div class="tickable" style="z-index: 99;" id="22"></div>
   </div>
   <div id="reset" onclick=""><img src="3594008.png" alt=""></div>
-  <form action="reset" method="post" id="delete-form">
-    <button type="submit" id="delete-button">Delete Score</button>
-  </form>
+  
+  <button type="submit" id="delete-button" onclick="resetScore()">Delete Score</button>
+
   <script src="./main.js"></script>
 </body>
 

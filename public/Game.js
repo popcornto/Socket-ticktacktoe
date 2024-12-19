@@ -59,7 +59,6 @@ export default class Game {
       gameobj: this.gameobj,
       score: this.score,
       playerIds: this.playerIds,
-      playersStates: this.playersStates,
       turn: this.turn,
     });
   }
