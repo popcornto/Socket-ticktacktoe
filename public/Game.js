@@ -36,8 +36,8 @@ export default class Game {
   // }
 
   playersStates = {
-    p1: "start",
-    p2: "stop"
+    p1: "",
+    p2: ""
   }
 
   switchStates(){
@@ -59,6 +59,7 @@ export default class Game {
       gameobj: this.gameobj,
       score: this.score,
       playerIds: this.playerIds,
+      playersStates: this.playersStates,
       turn: this.turn,
     });
   }

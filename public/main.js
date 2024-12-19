@@ -73,6 +73,8 @@ function ToggleWaitingScreen() {
   }
 }
 ws.addEventListener("message", (data) => {
+  EnablePlayerMoves();
+  console.log(ws);
   isWaiting = false;
   let fetchedGame = JSON.parse(data.data);
   game = fetchedGame;
@@ -95,69 +97,6 @@ ws.addEventListener("message", (data) => {
   } else {
     if (isWaiting === false) {
       ToggleWaitingScreen();
-      if (playerTurn) {
-        tickables.forEach(function (tickable) {
-          tickable.addEventListener("click", async function handleClick() {
-            if (!tickable.classList.contains("clicked")) {
-              // var audio = new Audio("shar.mp3");
-              // audio.play();
-              /*
-            await fetch("http://localhost:5000/playerTurn")
-              .then((response) => {
-                if (!response.ok) {
-                  throw new Error("Network response was not ok");
-                }
-                return response.json();
-              })
-              .then((data) => {
-                console.log(data);
-                playerTurn = data;
-              })
-              .catch((error) => console.error("Fetch error:", error));
-              */
-              if (playerTurn) {
-                playerTurn = false;
-                turnIndicator.textContent = "Player 2";
-                tickable.innerText = "X";
-                tickable.classList.add("clicked");
-
-                match = checkWin();
-                if (match != -1) {
-                  disableAllButtons();
-                }
-
-                let map = mapPlayerMoves();
-                game.gameobj = map;
-                updateGameTurn(playerTurn);
-                ws.send(JSON.stringify(game));
-                
-              } else {
-                playerTurn = true;
-                updateGameTurn(playerTurn);
-                turnIndicator.textContent = "Player 1";
-                tickable.innerText = "O";
-                tickable.classList.add("clicked");
-
-                match = checkWin();
-                if (match != -1) {
-                  disableAllButtons();
-                }
-
-                let map = mapPlayerMoves();
-                game.gameobj = map;
-                //console.log(game);
-                ws.send(JSON.stringify(game));
-                
-              }
-              
-            }
-            disableAllButtons()
-          });
-          
-        });
-        //console.log(game);
-        EnablePlayerMoves()
-      }
     } else {
       console.log(match);
       if (match === -1) {
@@ -168,26 +107,66 @@ ws.addEventListener("message", (data) => {
       }
     }
   }
-
-  /*
-  let newGrid = data.data;
-  console.log(JSON.parse(newGrid.gameobj)); //parsing a string to an obj
-  
-  match = checkWin();
-  fetch("http://localhost:5000/score")
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json();
-    })
-    .then((data) => {
-      updateScore(data.p1, data.p2, data.tie);
-    })
-    .catch((error) => console.error("Fetch error:", error));
-  displayReset();
-  */
 });
+
+tickables.forEach(function (tickable) {
+  tickable.addEventListener("click", function handleClick() {
+    if (!tickable.classList.contains("clicked")) {
+      // var audio = new Audio("shar.mp3");
+      // audio.play();
+      /*
+      await fetch("http://localhost:5000/playerTurn")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          console.log(data);
+          playerTurn = data;
+        })
+        .catch((error) => console.error("Fetch error:", error));
+        */
+
+      playerTurn = !playerTurn;
+      turnIndicator.textContent = playerTurn ? "Player 2" : "Player 1";
+      tickable.innerText = playerTurn ? "O" : "X";
+      tickable.classList.add("clicked");
+
+      match = checkWin();
+      if (match != -1) {
+        disableAllButtons();
+        displayReset(score);
+      }
+
+      let map = mapPlayerMoves();
+      game.gameobj = map;
+      updateGameTurn(playerTurn);
+      ws.send(JSON.stringify(game));
+      disableAllButtons();
+    }
+  });
+});
+
+/*
+let newGrid = data.data;
+console.log(JSON.parse(newGrid.gameobj)); //parsing a string to an obj
+
+match = checkWin();
+fetch("http://localhost:5000/score")
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    return response.json();
+  })
+  .then((data) => {
+    updateScore(data.p1, data.p2, data.tie);
+  })
+  .catch((error) => console.error("Fetch error:", error));
+displayReset();
+*/
 
 function resetScore() {
   const newScore = {
@@ -211,10 +190,11 @@ function hasReset() {
     reload();
   }
 }
+
 function reload() {
   updateGameGrid(newgrid);
   clearGrid();
-  EnablePlayerMoves();
+  EnablePlayerMoves(); //this is the key to my problems
   reverseCheckWin();
   removeReset();
   match = checkWin();
@@ -235,6 +215,7 @@ function addreset() {
   game = { ...game, reset: true };
 }
 function reloadPage() {
+  playerTurn = true
   updateGameGrid(newgrid);
   clearGrid();
   EnablePlayerMoves();
@@ -544,9 +525,9 @@ function displayReset(score) {
     //     reset.onclick = reloadPage;
     //   })
     //   .catch((error) => console.error("Fetch error:", error));
-  }else{
-    EnablePlayerMoves()
-    ws.send(JSON.stringify(game))
+  } else {
+    EnablePlayerMoves();
+    ws.send(JSON.stringify(game));
   }
 }
 
